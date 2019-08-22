@@ -1,4 +1,4 @@
-Package: influxdbr
+Package: influxdbrv2
 Type: Package
 Title: R Interface to InfluxDB
 Version: 0.14.3.9000
