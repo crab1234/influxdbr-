@@ -68,7 +68,8 @@ influx_query <- function(con,
     purrr::map(response_to_list) %>% # from json to list
     purrr::map(query_list_to_tibble, # from list to tibble
                timestamp_format = timestamp_format) %>% 
-    purrr::flatten(.) %>% 
+    #TODO
+    #purrr::flatten(.) %>% 
     # set 'result_na' tibble to NULL
     purrr::map_if(result_is_empty, ~ NULL)
   
