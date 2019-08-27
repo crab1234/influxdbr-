@@ -1,8 +1,11 @@
 #' @rdname nb_ets
 #' @export
-nb_ets <- function(data,freq,predlenth,force_positive){
-  
+nb_ets <- function(data,freq,predlenth,force_positive=FALSE,debug=FALSE){
+  t_pre <- 0
+  t_ets <- 0
+  t_write <- 0
   for(j in 1:length(data$results.series_values)){
+    t1 = Sys.time()
     series_tags <- as.data.frame(data$results.series_tags[j])
     series_names <- paste(data$results.series_names[j],'pred',sep="_")
     
@@ -10,7 +13,7 @@ nb_ets <- function(data,freq,predlenth,force_positive){
     temp<-temp[complete.cases(temp),]
     
     y = ts(temp$y,frequency=freq)
-    
+    t2 = Sys.time()
     res_y = stlm(y, s.window = freq, robust = FALSE, method = "ets", etsmodel = "ZZN")
     pred_y = forecast(res_y, method = "ets", etsmodel = "ZZN", forecastfunction = NULL,
                       h = predlenth, level = 80,
@@ -24,14 +27,26 @@ nb_ets <- function(data,freq,predlenth,force_positive){
       output[output<0] <- 0
     }
     output <- cbind(output,series_tags) 
+    t3 = Sys.time()
     influx_write(con = con, 
                  db = db,
                  x = output,
                  time_col = "time", 
                  tag_cols = colnames(output)[-c(1:4)],
                  measurement = series_names)
+    t4 = Sys.time()
+    t_pre <- t_pre + t2 -t1
+    t_ets <- t_ets + t3 -t2
+    t_write <- t_write + t4 -t3
   }
-  
+  if(debug){
+    print("---time for pre---")
+    print(t_pre)
+    print("---time for ets---")
+    print(t_ets)
+    print("---time for write---")
+    print(t_write)
+  }
   
 }
 
