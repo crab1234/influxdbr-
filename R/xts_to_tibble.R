@@ -1,3 +1,4 @@
+#' @rdname xts_to_tibble
 #' @export
 xts_to_tibble <- function(x, timestamp_format) {
   
