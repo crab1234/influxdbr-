@@ -2,7 +2,7 @@
 \alias{xts_to_tibble}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-%%  ~~function to do ... ~~
+list_to_tibble
 }
 \description{
 %%  ~~ A concise (1-5 lines) description of what the function does. ~~
