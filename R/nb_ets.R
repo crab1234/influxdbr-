@@ -1,3 +1,4 @@
+#' @rdname 
 #' @export
 nb_ets <- function(data,freq,predlenth,force_positive){
   
