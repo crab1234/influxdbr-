@@ -1,3 +1,4 @@
+#' @export
 nb_ets <- function(data,freq,predlenth,force_positive){
   
   for(j in 1:length(data$results.series_values)){
