@@ -1,3 +1,4 @@
+#' @export
 xts_to_tibble <- function(x, timestamp_format) {
   
   #x <- debug_data %>% purrr::map(response_to_list)
