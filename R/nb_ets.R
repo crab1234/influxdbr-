@@ -14,12 +14,14 @@ nb_ets <- function(data,freq,predlenth,force_positive=FALSE,debug=FALSE){
     
     y = ts(temp$y,frequency=freq)
     t2 = Sys.time()
+    
+    # R forecast package
     res_y = stlm(y, s.window = freq, robust = FALSE, method = "ets", etsmodel = "ZZN")
     pred_y = forecast(res_y, method = "ets", etsmodel = "ZZN", forecastfunction = NULL,
                       h = predlenth, level = 80,
                       fan = FALSE, lambda = res_y$lambda, biasadj = NULL, xreg = NULL,
                       newxreg = NULL)
-    
+    # end of forecast
     history <- history(data = temp,pred_y = pred_y,freq = freq, width = 2.0)
     future <- future(data = temp,pred_y = pred_y,freq = freq, pred_length = predlenth)
     output = rbind(history,future)
