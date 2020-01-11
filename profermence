@@ -1,0 +1,47 @@
+import numpy as np
+import pandas as pd
+from fbprophet import Prophet
+import logging
+
+class Perf_pred:
+
+    def __init__(self, data, freq="1H"):
+        self.data = data
+        self.freq = freq
+
+    def get_data(self):
+        return self.data
+
+    def set_data(self, data):
+        self.data = data
+
+    def perf_preprocess(self):
+        logging.debug("preprocess start")
+        data0 = self.data
+        data0['ds'] = pd.to_datetime(data0['ds'], unit='s')
+        data0.set_index("ds", inplace=True)
+        data0 = data0.resample(self.freq).mean()
+        data0[np.abs(data0.y - data0.y.mean()) > (3 * data0.y.std())] = np.nan
+        data0.interpolate(limit_direction="both",inplace=True)
+        data0.reset_index(inplace=True)
+        self.data = data0
+        return data0
+
+    def performance_pred(self, pred=48, growth='linear', yearly_s=True, weekly_s=True, daily_s=True,
+                         cpscale=0.05, season_scale=10):
+        logging.debug("proformance prediction start")
+        data0 = self.perf_preprocess()
+        if len(self.data) <= pred:
+            logging.warning("not enough data to predict!")
+            return None, False
+        m = Prophet(growth=growth, yearly_seasonality=yearly_s, weekly_seasonality=weekly_s,
+                    daily_seasonality=daily_s, changepoint_prior_scale=cpscale,
+                    seasonality_prior_scale=season_scale)
+        m.fit(data0)
+        future = m.make_future_dataframe(periods=pred, freq=self.freq)
+
+        fcst = m.predict(future)
+        output = fcst[["ds", "yhat", "yhat_lower", "yhat_upper"]]
+        del m
+        logging.debug("proformance prediction end")
+        return output, True
