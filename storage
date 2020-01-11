@@ -1,0 +1,46 @@
+import pandas as pd
+from fbprophet import Prophet
+import logging
+
+class Storage_pred:
+
+    def __init__(self, data, freq="1H"):
+        self.data = data
+        self.freq = freq
+
+    def get_data(self):
+        return self.data
+
+    def set_data(self, data):
+        self.data = data
+
+    def storage_preprocess(self):
+        logging.debug("preprocess start")
+        data0 = self.data
+        data0['ds'] = pd.to_datetime(data0['ds'], unit="s")
+        data0.set_index("ds", inplace=True)
+        data0 = data0.resample(self.freq).mean()
+        data0['ds'] = data0.index
+        data0.index.name = None
+        return data0
+
+    def storage_pred(self, pred=48, growth='logistic', yearly_s=False, weekly_s=False, daily_s=False,
+                     cpscale=0.35, season_scale=10):
+        logging.debug("storage prediction start")
+        data0 = self.storage_preprocess()
+        if data0.y[len(data0)-1] < data0.cap[0]*0.01:
+            growth = 'linear'
+        m = Prophet(growth=growth, yearly_seasonality=yearly_s, weekly_seasonality=weekly_s,
+                    daily_seasonality=daily_s, changepoint_prior_scale=cpscale,
+                    seasonality_prior_scale=season_scale)
+        m.fit(data0)
+        future = m.make_future_dataframe(periods=pred, freq=self.freq)
+        if len(self.data) <= pred:
+            logging.warning("not enough data to predict!")
+            return None, False
+        future["cap"] = data0.cap[0]
+        fcst = m.predict(future)
+        output = fcst[["ds", "yhat", "yhat_lower", "yhat_upper"]]
+        del m
+        logging.debug("storage prediction end")
+        return output, True
